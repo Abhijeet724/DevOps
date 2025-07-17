@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Application Input</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Add this to your <head> section to link to workflow.html -->
+  <link rel="prefetch" href="workflow.html">
 </head>
 <body class="bg-gray-100 p-6 min-h-screen">
 
@@ -53,14 +55,6 @@
       </table>
     </div>
 
-    <!-- Preview Section -->
-    <div class="mb-6">
-      <h3 class="text-lg font-semibold mb-3 text-gray-700">Preview</h3>
-      <div id="preview" class="bg-gray-50 border rounded-md p-4 text-sm text-gray-800 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <p class="text-gray-500">No fields added yet.</p>
-      </div>
-    </div>
-
     <!-- Submit Button -->
     <div class="flex justify-end">
       <button onclick="submitForm()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md text-base shadow-md transition-all scale-90">
@@ -72,7 +66,6 @@
   <!-- Script -->
   <script>
     const tableBody = document.getElementById("tableBody");
-    const previewDiv = document.getElementById("preview");
     let dataList = [];
 
     function addRow() {
@@ -100,27 +93,6 @@
       tableBody.appendChild(newRow);
 
       document.getElementById("inputForm").reset();
-      updatePreview();
-    }
-
-    function updatePreview() {
-      previewDiv.innerHTML = "";
-      if (dataList.length === 0) {
-        previewDiv.innerHTML = '<p class="text-gray-500">No fields added yet.</p>';
-        return;
-      }
-
-      dataList.forEach(item => {
-        const previewItem = document.createElement("div");
-        previewItem.className = "p-3 border rounded bg-white shadow-sm";
-        previewItem.innerHTML = `
-          <p><strong>Label:</strong> ${item.label}</p>
-          <p><strong>Field Name:</strong> ${item.field}</p>
-          <p><strong>Data Type:</strong> ${item.type}</p>
-          <p><strong>Mandatory:</strong> ${item.mandatory}</p>
-        `;
-        previewDiv.appendChild(previewItem);
-      });
     }
 
     function submitForm() {
@@ -130,11 +102,18 @@
       }
 
       console.log("Submitted Data:", dataList);
-      alert("Form submitted successfully!");
-      localStorage.setItem("applicationInputData", JSON.stringify(dataList));
 
-      // Redirect to workflow page
-      window.location.href = "workflow.html";
+      // Show temporary popup instead of alert
+      const popup = document.createElement("div");
+      popup.textContent = "Form submitted successfully!";
+      popup.className = "fixed top-6 right-6 bg-green-600 text-white px-6 py-3 rounded shadow-lg z-50";
+      document.body.appendChild(popup);
+
+      setTimeout(() => {
+        popup.remove();
+        localStorage.setItem("applicationInputData", JSON.stringify(dataList));
+        window.location.href = "workflow.html";
+      }, 1500);
     }
   </script>
 

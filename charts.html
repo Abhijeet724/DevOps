@@ -96,7 +96,8 @@
     // Create workflow boxes and step boxes
     Object.entries(workflowMap).forEach(([workflowName, steps]) => {
       const workflowBox = document.createElement("div");
-      workflowBox.className = "bg-yellow-300 p-4 rounded-xl shadow-md w-fit relative";
+      // Increase padding and optionally width for larger yellow boxes
+      workflowBox.className = "bg-yellow-300 p-5 rounded-xl shadow-md w-fit min-w-[150px] relative";
 
       const title = document.createElement("h3");
       title.className = "font-bold text-lg mb-2 text-gray-800";
@@ -185,17 +186,17 @@
         const fromBoxX = fromRect.left + fromRect.width / 2 - containerRect.left;
         const toBoxX = toRect.left + toRect.width / 2 - containerRect.left;
 
-        // Make the arrow shorter by moving start/end points closer to each box edge
+        // Make the arrow much shorter
         const dx = toBoxX - fromBoxX;
         const dy = toBoxY - fromBoxY;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const shorten = Math.min(40, distance / 2);
+        const shorten = Math.min(80, distance * 0.35); // Shorter arrow
 
-        // Calculate new start/end points
+        // Calculate new start/end points, shift arrow 30% down
         const x1 = fromBoxX + (dx / distance) * shorten;
-        const y1 = fromBoxY + (dy / distance) * shorten;
+        const y1 = fromBoxY + (dy / distance) * shorten + fromRect.height * 0.3; // Shift arrow 30% down
         const x2 = toBoxX - (dx / distance) * shorten;
-        const y2 = toBoxY - (dy / distance) * shorten;
+        const y2 = toBoxY - (dy / distance) * shorten + toRect.height * 0.3; // Shift arrow 30% down
 
         const line = document.createElementNS(svgNS, "line");
         line.setAttribute("x1", x1);

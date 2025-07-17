@@ -33,6 +33,7 @@
             <th class="px-4 py-3 border">Step</th>
             <th class="px-4 py-3 border">Workflow</th>
             <th class="px-4 py-3 border">Parameter</th>
+            <th class="px-4 py-3 border">Delete</th>
           </tr>
         </thead>
         <tbody id="workflowTable" class="bg-white">
@@ -53,8 +54,26 @@
   </div>
 
   <script>
-    const workflowData = [];
+    const workflowData = JSON.parse(localStorage.getItem("workflowData")) || [];
     const tableBody = document.getElementById("workflowTable");
+
+    // Render table on page load if data exists
+    function renderTable() {
+      tableBody.innerHTML = "";
+      workflowData.forEach((data, idx) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td class="px-4 py-2 border">${data.step}</td>
+          <td class="px-4 py-2 border">${data.workflow}</td>
+          <td class="px-4 py-2 border">${data.parameters ? data.parameters.join(", ") : data.parameter}</td>
+          <td class="px-4 py-2 border text-center">
+            <button onclick="deleteStep(${idx})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">Delete</button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+    renderTable();
 
     function addWorkflow() {
       const step = document.getElementById("step").value.trim();
@@ -77,19 +96,14 @@
         workflowData.push({ step, workflow, parameter, parameters: [parameter] });
       }
 
-      // Re-render table
-      tableBody.innerHTML = "";
-      workflowData.forEach(data => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td class="px-4 py-2 border">${data.step}</td>
-          <td class="px-4 py-2 border">${data.workflow}</td>
-          <td class="px-4 py-2 border">${data.parameters ? data.parameters.join(", ") : data.parameter}</td>
-        `;
-        tableBody.appendChild(row);
-      });
-
+      renderTable();
       document.getElementById("workflowForm").reset();
+    }
+
+    function deleteStep(idx) {
+      workflowData.splice(idx, 1);
+      localStorage.setItem("workflowData", JSON.stringify(workflowData));
+      renderTable();
     }
 
     function submitWorkflow() {
@@ -103,7 +117,7 @@
     }
 
     function goBack() {
-      window.location.href = "application-input.html";
+      window.location.href = "index.html";
     }
   </script>
 </body>
