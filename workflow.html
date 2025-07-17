@@ -1,0 +1,96 @@
+<!-- workflow.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Workflow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6 min-h-screen">
+
+  <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-xl p-6">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">Workflow Dependencies</h2>
+
+    <form id="workflowForm" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <input type="text" id="step" placeholder="Step" class="border px-3 py-2 rounded" required>
+      <input type="text" id="workflow" placeholder="Workflow" class="border px-3 py-2 rounded" required>
+      <input type="text" id="parameter" placeholder="Parameter" class="border px-3 py-2 rounded" required>
+    </form>
+
+    <div class="flex justify-end mb-6">
+      <button onclick="addWorkflow()" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-all">
+        Add Workflow
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm text-left border border-gray-300 mb-8">
+        <thead class="bg-gray-200 text-xs uppercase font-semibold text-gray-700">
+          <tr>
+            <th class="px-4 py-3 border">Step</th>
+            <th class="px-4 py-3 border">Workflow</th>
+            <th class="px-4 py-3 border">Parameter</th>
+          </tr>
+        </thead>
+        <tbody id="workflowTable" class="bg-white">
+          <!-- Rows will be added here -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex justify-between">
+      <button onclick="goBack()" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-md shadow">
+        ← Previous Page
+      </button>
+      <button onclick="submitWorkflow()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md text-base shadow-md transition-all">
+        Submit Workflow
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const workflowData = [];
+    const tableBody = document.getElementById("workflowTable");
+
+    function addWorkflow() {
+      const step = document.getElementById("step").value.trim();
+      const workflow = document.getElementById("workflow").value.trim();
+      const parameter = document.getElementById("parameter").value.trim();
+
+      if (!step || !workflow || !parameter) {
+        alert("Please fill out all fields.");
+        return;
+      }
+
+      const data = { step, workflow, parameter };
+      workflowData.push(data);
+
+      const newRow = document.createElement("tr");
+      newRow.innerHTML = `
+        <td class="px-4 py-2 border">${step}</td>
+        <td class="px-4 py-2 border">${workflow}</td>
+        <td class="px-4 py-2 border">${parameter}</td>
+      `;
+      tableBody.appendChild(newRow);
+
+      document.getElementById("workflowForm").reset();
+    }
+
+    function submitWorkflow() {
+      if (workflowData.length === 0) {
+        alert("Add at least one workflow before submitting.");
+        return;
+      }
+      localStorage.setItem("workflowData", JSON.stringify(workflowData));
+      window.location.href = "charts.html";
+    }
+
+    function goBack() {
+      window.history.back();
+    }
+  </script>
+</body>
+</html>

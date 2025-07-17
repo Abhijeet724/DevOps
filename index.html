@@ -1,11 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello World</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Field Configuration</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Hello!</h1>
+<body class="bg-gray-100 p-6 min-h-screen">
+
+  <div class="max-w-6xl mx-auto bg-white shadow-lg rounded-xl p-6">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">Field Configuration</h2>
+
+    <!-- Input Form -->
+    <form id="inputForm" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+      <input id="label" type="text" placeholder="Label" class="border px-3 py-2 rounded" required>
+      <input id="fieldName" type="text" placeholder="Field Name" class="border px-3 py-2 rounded" required>
+      <select id="dataType" class="border px-3 py-2 rounded" required>
+        <option value="">Data Type</option>
+        <option value="number">Number</option>
+        <option value="string">String</option>
+        <option value="date">Date</option>
+        <option value="boolean">Boolean</option>
+      </select>
+      <select id="mandatory" class="border px-3 py-2 rounded" required>
+        <option value="">Mandatory</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+    </form>
+
+    <!-- Right-aligned Add Field -->
+    <div class="flex justify-end mb-6">
+      <button onclick="addRow()" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-all">
+        Add Field
+      </button>
+    </div>
+
+    <!-- Table Preview -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm text-left border border-gray-300 mb-8">
+        <thead class="bg-gray-200 text-xs uppercase font-semibold text-gray-700">
+          <tr>
+            <th class="px-4 py-3 border border-gray-300">Label</th>
+            <th class="px-4 py-3 border border-gray-300">Field Name</th>
+            <th class="px-4 py-3 border border-gray-300">Data Type</th>
+            <th class="px-4 py-3 border border-gray-300">Mandatory</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody" class="bg-white">
+          <!-- Rows will be inserted here -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Preview Section -->
+    <div class="mb-6">
+      <h3 class="text-lg font-semibold mb-3 text-gray-700">Preview</h3>
+      <div id="preview" class="bg-gray-50 border rounded-md p-4 text-sm text-gray-800 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <p class="text-gray-500">No fields added yet.</p>
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="flex justify-end">
+      <button onclick="submitForm()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md text-base shadow-md transition-all scale-90">
+        Submit
+      </button>
+    </div>
+  </div>
+
+  <!-- Script -->
+  <script>
+    const tableBody = document.getElementById("tableBody");
+    const previewDiv = document.getElementById("preview");
+    let dataList = [];
+
+    function addRow() {
+      const label = document.getElementById("label").value.trim();
+      const field = document.getElementById("fieldName").value.trim();
+      const type = document.getElementById("dataType").value;
+      const mandatory = document.getElementById("mandatory").value;
+
+      if (!label || !field || !type || !mandatory) {
+        alert("Please fill out all fields.");
+        return;
+      }
+
+      const newData = { label, field, type, mandatory };
+      dataList.push(newData);
+
+      const newRow = document.createElement("tr");
+      newRow.className = "hover:bg-gray-50";
+      newRow.innerHTML = `
+        <td class="px-4 py-2 border">${label}</td>
+        <td class="px-4 py-2 border">${field}</td>
+        <td class="px-4 py-2 border">${type}</td>
+        <td class="px-4 py-2 border ${mandatory === 'yes' ? 'text-green-600' : 'text-gray-500'} font-medium">${mandatory}</td>
+      `;
+      tableBody.appendChild(newRow);
+
+      document.getElementById("inputForm").reset();
+      updatePreview();
+    }
+
+    function updatePreview() {
+      previewDiv.innerHTML = "";
+      if (dataList.length === 0) {
+        previewDiv.innerHTML = '<p class="text-gray-500">No fields added yet.</p>';
+        return;
+      }
+
+      dataList.forEach(item => {
+        const previewItem = document.createElement("div");
+        previewItem.className = "p-3 border rounded bg-white shadow-sm";
+        previewItem.innerHTML = `
+          <p><strong>Label:</strong> ${item.label}</p>
+          <p><strong>Field Name:</strong> ${item.field}</p>
+          <p><strong>Data Type:</strong> ${item.type}</p>
+          <p><strong>Mandatory:</strong> ${item.mandatory}</p>
+        `;
+        previewDiv.appendChild(previewItem);
+      });
+    }
+
+    function submitForm() {
+      if (dataList.length === 0) {
+        alert("Please add at least one field before submitting.");
+        return;
+      }
+
+      console.log("Submitted Data:", dataList);
+      alert("Form submitted successfully!");
+
+      // Redirect to workflow page
+      window.location.href = "workflow.html";
+    }
+  </script>
+
 </body>
 </html>

@@ -1,0 +1,73 @@
+<!-- charts.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workflow Charts</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6 min-h-screen">
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Workflow Chart</h1>
+
+    <!-- Chart Container: Steps go horizontally -->
+    <div id="chartContainer" class="flex flex-wrap gap-6 mb-8">
+      <!-- Yellow Step Boxes will be inserted here -->
+    </div>
+
+    <!-- Previous Page Button -->
+    <div class="flex justify-start">
+      <button onclick="goBack()" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-md shadow">
+        ← Previous Page
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const container = document.getElementById("chartContainer");
+    const workflowData = JSON.parse(localStorage.getItem("workflowData")) || [];
+
+    // Group workflows by workflow name
+    const workflowMap = {};
+    workflowData.forEach(({ step, workflow, parameter }) => {
+      if (!workflowMap[workflow]) workflowMap[workflow] = [];
+      workflowMap[workflow].push({ step, parameter });
+    });
+
+    // Render yellow boxes horizontally
+    Object.entries(workflowMap).forEach(([workflowName, steps]) => {
+      const box = document.createElement("div");
+      box.className = "bg-yellow-300 p-4 rounded-xl shadow-md w-fit";
+
+      const title = document.createElement("h3");
+      title.className = "font-bold text-lg mb-2 text-gray-800";
+      title.textContent = workflowName;
+      box.appendChild(title);
+
+      const stepRow = document.createElement("div");
+      stepRow.className = "flex flex-wrap gap-2";
+
+      steps.forEach(({ step, parameter }) => {
+        const stepBox = document.createElement("div");
+        stepBox.className = "bg-white border border-yellow-600 px-3 py-1 rounded shadow text-sm text-gray-800 relative group";
+        stepBox.textContent = step;
+
+        const tooltip = document.createElement("div");
+        tooltip.className = "absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max px-2 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition";
+        tooltip.textContent = `Parameter: ${parameter}`;
+        stepBox.appendChild(tooltip);
+
+        stepRow.appendChild(stepBox);
+      });
+
+      box.appendChild(stepRow);
+      container.appendChild(box);
+    });
+
+    function goBack() {
+      window.history.back();
+    }
+  </script>
+</body>
+</html>
