@@ -1,20 +1,74 @@
-<!-- charts.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Workflow Charts</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Arrow style */
+    .arrow-line {
+      stroke: #4b5563;
+      stroke-width: 2;
+      fill: none;
+      marker-end: url(#arrowhead);
+    }
+    /* Tooltip styles */
+    .step-box {
+      position: relative;
+      cursor: default;
+    }
+    .tooltip {
+      position: absolute;
+      left: 50%;
+      bottom: 100%;
+      transform: translateX(-50%);
+      margin-bottom: 0.5rem;
+      background: black;
+      color: white;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease-in-out;
+      z-index: 10;
+    }
+    .step-box:hover .tooltip {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    /* Container must be relative to position svg absolutely inside */
+    #chartContainer {
+      position: relative;
+    }
+    /* SVG on top of container */
+    #arrowCanvas {
+      position: absolute;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 5;
+    }
+  </style>
 </head>
 <body class="bg-gray-100 p-6 min-h-screen">
-  <div class="max-w-7xl mx-auto">
+  <div class="max-w-7xl mx-auto relative" style="min-height: 300px;">
     <h1 class="text-3xl font-bold text-gray-800 mb-6">Workflow Chart</h1>
 
     <!-- Chart Container: Steps go horizontally -->
-    <div id="chartContainer" class="flex flex-wrap gap-6 mb-8">
+    <div id="chartContainer" class="flex flex-wrap gap-6 mb-8 relative z-10">
       <!-- Yellow Step Boxes will be inserted here -->
     </div>
+
+    <!-- SVG Layer for Arrows -->
+    <svg id="arrowCanvas" width="0" height="0">
+      <defs>
+        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="strokeWidth">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#4b5563" />
+        </marker>
+      </defs>
+    </svg>
 
     <!-- Previous Page Button -->
     <div class="flex justify-start">
@@ -26,6 +80,7 @@
 
   <script>
     const container = document.getElementById("chartContainer");
+    const canvas = document.getElementById("arrowCanvas");
     const workflowData = JSON.parse(localStorage.getItem("workflowData")) || [];
 
     // Group workflows by workflow name
@@ -35,35 +90,135 @@
       workflowMap[workflow].push({ step, parameter });
     });
 
-    // Render yellow boxes horizontally
+    // Store step rows for arrows
+    const workflowStepRows = [];
+
+    // Create workflow boxes and step boxes
     Object.entries(workflowMap).forEach(([workflowName, steps]) => {
-      const box = document.createElement("div");
-      box.className = "bg-yellow-300 p-4 rounded-xl shadow-md w-fit";
+      const workflowBox = document.createElement("div");
+      workflowBox.className = "bg-yellow-300 p-4 rounded-xl shadow-md w-fit relative";
 
       const title = document.createElement("h3");
       title.className = "font-bold text-lg mb-2 text-gray-800";
       title.textContent = workflowName;
-      box.appendChild(title);
+      workflowBox.appendChild(title);
 
       const stepRow = document.createElement("div");
-      stepRow.className = "flex flex-wrap gap-2";
+      stepRow.className = "flex flex-wrap gap-2 relative";
 
       steps.forEach(({ step, parameter }) => {
         const stepBox = document.createElement("div");
-        stepBox.className = "bg-white border border-yellow-600 px-3 py-1 rounded shadow text-sm text-gray-800 relative group";
+        stepBox.className = "bg-white border border-yellow-600 px-3 py-1 rounded shadow text-sm text-gray-800 step-box";
         stepBox.textContent = step;
 
         const tooltip = document.createElement("div");
-        tooltip.className = "absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max px-2 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition";
+        tooltip.className = "tooltip";
         tooltip.textContent = `Parameter: ${parameter}`;
         stepBox.appendChild(tooltip);
 
         stepRow.appendChild(stepBox);
       });
 
-      box.appendChild(stepRow);
-      container.appendChild(box);
+      workflowBox.appendChild(stepRow);
+      container.appendChild(workflowBox);
+      workflowStepRows.push(stepRow);
     });
+
+    // Increase space between workflow boxes
+    container.classList.add("gap-16"); // Tailwind gap-16 for more space
+
+    // Resize SVG to container size
+    function resizeSVG() {
+      const rect = container.getBoundingClientRect();
+      canvas.style.width = rect.width + "px";
+      canvas.style.height = rect.height + "px";
+      canvas.setAttribute("width", rect.width);
+      canvas.setAttribute("height", rect.height);
+    }
+
+    // Draw arrows horizontally between step boxes in each workflow row
+    function drawArrows() {
+      const svgNS = "http://www.w3.org/2000/svg";
+
+      // Save defs then clear everything else
+      const defs = canvas.querySelector("defs");
+      canvas.innerHTML = "";
+      if (defs) canvas.appendChild(defs);
+
+      const containerRect = container.getBoundingClientRect();
+
+      workflowStepRows.forEach(stepRow => {
+        const steps = Array.from(stepRow.children);
+        for (let i = 0; i < steps.length - 1; i++) {
+          const fromRect = steps[i].getBoundingClientRect();
+          const toRect = steps[i + 1].getBoundingClientRect();
+
+          // Arrow from center middle of one step box to center middle of next
+          const x1 = fromRect.left + fromRect.width / 2 - containerRect.left;
+          const y1 = fromRect.top + fromRect.height / 2 - containerRect.top;
+
+          const x2 = toRect.left + toRect.width / 2 - containerRect.left;
+          const y2 = toRect.top + toRect.height / 2 - containerRect.top;
+
+          const line = document.createElementNS(svgNS, "line");
+          line.setAttribute("x1", x1);
+          line.setAttribute("y1", y1);
+          line.setAttribute("x2", x2);
+          line.setAttribute("y2", y2);
+          line.setAttribute("class", "arrow-line");
+
+          canvas.appendChild(line);
+        }
+      });
+
+      // Arrows between yellow workflow boxes (from right to left)
+      const workflowBoxes = Array.from(container.children);
+      for (let i = workflowBoxes.length - 1; i > 0; i--) {
+        const fromRect = workflowBoxes[i].getBoundingClientRect();
+        const toRect = workflowBoxes[i - 1].getBoundingClientRect();
+
+        // Use the workflowBox itself for vertical position, not the title or stepRow
+        const fromBoxY = fromRect.top + fromRect.height / 2 - containerRect.top;
+        const toBoxY = toRect.top + toRect.height / 2 - containerRect.top;
+
+        // Center X positions
+        const fromBoxX = fromRect.left + fromRect.width / 2 - containerRect.left;
+        const toBoxX = toRect.left + toRect.width / 2 - containerRect.left;
+
+        // Make the arrow shorter by moving start/end points closer to each box edge
+        const dx = toBoxX - fromBoxX;
+        const dy = toBoxY - fromBoxY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const shorten = Math.min(40, distance / 2);
+
+        // Calculate new start/end points
+        const x1 = fromBoxX + (dx / distance) * shorten;
+        const y1 = fromBoxY + (dy / distance) * shorten;
+        const x2 = toBoxX - (dx / distance) * shorten;
+        const y2 = toBoxY - (dy / distance) * shorten;
+
+        const line = document.createElementNS(svgNS, "line");
+        line.setAttribute("x1", x1);
+        line.setAttribute("y1", y1);
+        line.setAttribute("x2", x2);
+        line.setAttribute("y2", y2);
+        line.setAttribute("class", "arrow-line");
+
+        canvas.appendChild(line);
+      }
+    }
+
+    // Update function to resize and redraw arrows
+    function update() {
+      resizeSVG();
+      drawArrows();
+    }
+
+    window.addEventListener("load", () => {
+      setTimeout(update, 100); // Wait for rendering
+    });
+
+    window.addEventListener("resize", update);
 
     function goBack() {
       window.history.back();
